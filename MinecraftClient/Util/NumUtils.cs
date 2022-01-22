@@ -4,7 +4,7 @@ using System.Numerics;
 
 public static class NumUtils
 {
-    public static int ParseVarInt(Stream s)
+    public static int ReadVarInt(Stream s, out int size)
     {
         int val = 0;
         int current = s.ReadByte();
@@ -16,10 +16,16 @@ public static class NumUtils
         }
         val |= (current & 0x7F) << (len * 7);
 
+        size = len + 1;
         return val;
     }
 
-    public static byte[] GetVarInt(uint x)
+    public static int ReadVarInt(Stream s)
+    {
+        return ReadVarInt(s, out int _);
+    }
+
+    public static byte[] ToVarInt(uint x)
     {
         byte[] arr = new byte[BitOperations.Log2(x) / 7 + 1];
         for (int i = 0; i < arr.Length; i++)
@@ -34,7 +40,7 @@ public static class NumUtils
         return arr;
     }
     
-    public static long ParseVarLong(Stream s)
+    public static long ReadVarLong(Stream s)
     {
         long val = 0;
         // not TECHNICALLY required to be a long, but otherwise some of the bitwise stuff below might get truncated to 4 bytes.
@@ -50,7 +56,7 @@ public static class NumUtils
         return val;
     }
     
-    public static byte[] GetVarLong(ulong x)
+    public static byte[] ToVarLong(ulong x)
     {
         byte[] arr = new byte[BitOperations.Log2(x) / 7 + 1];
         for (int i = 0; i < arr.Length; i++)
