@@ -37,6 +37,9 @@ public class Client : IDisposable
             return IncomingPacketTypes[packId](stream, size - t);
         }
 
+        for (int i = 0; i < size - t; i++)
+            stream.ReadByte();
+
         throw new NotImplementedException($"Unknown Packet type: {packId}");
     }
 
