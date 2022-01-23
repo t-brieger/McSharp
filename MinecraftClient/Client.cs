@@ -6,20 +6,37 @@ namespace MinecraftClient;
 
 public class Client : IDisposable
 {
-    private static readonly Dictionary<int, Func<Stream, int, InPacket>> IncomingPacketTypes;
+    public enum ProtocolState
+    {
+        HANDSHAKING,
+        STATUS,
+        LOGIN,
+        PLAY,
+        ALL,
+        // for keep-alive packets, for example.
+        DO_NOT_RETURN
+    }
+
+    private static readonly Dictionary<ProtocolState, Dictionary<int, Func<Stream, int, Client, InPacket>>> IncomingPacketTypes;
 
     static Client()
     {
-        IncomingPacketTypes = new Dictionary<int, Func<Stream, int, InPacket>>();
+        IncomingPacketTypes = new Dictionary<ProtocolState, Dictionary<int, Func<Stream, int, Client, InPacket>>>();
+        foreach (ProtocolState ps in Enum.GetValues(typeof(ProtocolState)))
+            IncomingPacketTypes.Add(ps, new Dictionary<int, Func<Stream, int, Client, InPacket>>());
 
-        IncomingPacketTypes.Add(0x1A, DisconnectPacket.Parse);
+        IncomingPacketTypes[ProtocolState.STATUS].Add(0x00, StatusPacket.Parse);
+        
+        IncomingPacketTypes[ProtocolState.ALL].Add(0x1A, DisconnectPacket.Parse);
     }
 
     private readonly TcpClient tcp;
+    public ProtocolState currentState;
 
     public Client(string serverAddress, int port = 25565)
     {
         tcp = new TcpClient(serverAddress, port);
+        currentState = ProtocolState.HANDSHAKING;
     }
 
     /*
@@ -32,10 +49,10 @@ public class Client : IDisposable
         int size = NumUtils.ReadVarInt(stream);
         int packId = NumUtils.ReadVarInt(stream, out int t);
 
-        if (IncomingPacketTypes.ContainsKey(packId))
-        {
-            return IncomingPacketTypes[packId](stream, size - t);
-        }
+        if (IncomingPacketTypes[currentState].ContainsKey(packId))
+            return IncomingPacketTypes[currentState][packId](stream, size - t, this);
+        if (IncomingPacketTypes[ProtocolState.ALL].ContainsKey(packId))
+            return IncomingPacketTypes[ProtocolState.ALL][packId](stream, size - t, this);
 
         for (int i = 0; i < size - t; i++)
             stream.ReadByte();

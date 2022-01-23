@@ -18,6 +18,7 @@ public static class ExampleClient
         Client c = new Client(address, port);
 
         c.SendPacket(new HandshakePacket(true, address, port));
+        c.currentState = Client.ProtocolState.STATUS;
         
         while (true)
         {

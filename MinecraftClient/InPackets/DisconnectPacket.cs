@@ -11,7 +11,7 @@ public class DisconnectPacket : InPacket
         Reason = r;
     }
     
-    public static InPacket Parse(Stream s, int length)
+    public static InPacket Parse(Stream s, int length, Client _)
     {
         return new DisconnectPacket(StringUtils.ReadString(s));
     }
