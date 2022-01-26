@@ -1,4 +1,5 @@
-﻿using MinecraftClient;
+﻿using System.Diagnostics;
+using MinecraftClient;
 using MinecraftClient.InPackets;
 using MinecraftClient.OutPackets;
 
@@ -17,13 +18,22 @@ public static class ExampleClient
 
         Client c = new Client(address, port);
 
-        c.SendPacket(new HandshakePacket(true, address, port));
-        c.currentState = Client.ProtocolState.STATUS;
+        Stopwatch sw = new Stopwatch();
         
+        c.SendPacket(new HandshakePacket(HandshakePacket.HandshakeTypes.STATUSPING, address, port));
+        // something about this is very slow, not sure why - i get 30 ping using notchian client, 200+ from this
+        sw.Start();
+        c.currentState = Client.ProtocolState.STATUS;
+
         while (true)
         {
             InPacket ip = c.GetNextPacket();
-            Console.WriteLine(ip);
+            if (ip is PingResponsePacket prp)
+            {
+                sw.Stop();
+                Console.WriteLine(sw.ElapsedMilliseconds + "ms ping");
+            }else
+                Console.WriteLine(ip);
         }
     }
 }

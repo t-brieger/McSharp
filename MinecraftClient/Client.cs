@@ -26,6 +26,7 @@ public class Client : IDisposable
             IncomingPacketTypes.Add(ps, new Dictionary<int, Func<Stream, int, Client, InPacket>>());
 
         IncomingPacketTypes[ProtocolState.STATUS].Add(0x00, StatusPacket.Parse);
+        IncomingPacketTypes[ProtocolState.STATUS].Add(0x01, PingResponsePacket.Parse);
         
         IncomingPacketTypes[ProtocolState.ALL].Add(0x1A, DisconnectPacket.Parse);
     }
