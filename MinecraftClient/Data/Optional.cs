@@ -3,5 +3,5 @@
 public class Optional<T>
 {
     public bool Exists;
-    public T Value;
+    public T? Value;
 }

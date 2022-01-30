@@ -22,7 +22,7 @@ public class HandshakePacket : OutgoingPacket
 
     protected override IEnumerable<byte> GetContent()
     {
-        List<byte> output = new List<byte>();
+        List<byte> output = new();
         output.AddRange(NumUtils.ToVarInt(757));
         output.AddRange(StringUtils.WriteString(address));
         output.AddRange(BitConverter.GetBytes(port));

@@ -1,6 +1,6 @@
 ﻿using MinecraftClient.Util;
 
-namespace MinecraftClient;
+namespace MinecraftClient.OutPackets;
 
 public abstract class OutgoingPacket
 {
@@ -11,9 +11,9 @@ public abstract class OutgoingPacket
     {
         if (compression)
             throw new NotImplementedException();
-        byte[] body = GetContent().ToArray();
-        List<byte> output = new List<byte>(body.Length + 10);
-        byte[] packetIdBytes = NumUtils.ToVarInt((uint) PacketId());
+        byte[] body = this.GetContent().ToArray();
+        List<byte> output = new(body.Length + 10);
+        byte[] packetIdBytes = NumUtils.ToVarInt((uint) this.PacketId());
         output.AddRange(NumUtils.ToVarInt((uint) (body.Length + packetIdBytes.Length)));
         output.AddRange(packetIdBytes);
         output.AddRange(body);

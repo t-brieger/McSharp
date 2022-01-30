@@ -1,10 +1,11 @@
 ﻿using System.Net.Sockets;
 using MinecraftClient.InPackets;
+using MinecraftClient.OutPackets;
 using MinecraftClient.Util;
 
 namespace MinecraftClient;
 
-public class Client : IDisposable
+public partial class Client : IDisposable
 {
     public enum ProtocolState
     {
@@ -32,12 +33,12 @@ public class Client : IDisposable
     }
 
     private readonly TcpClient tcp;
-    public ProtocolState currentState;
+    public ProtocolState CurrentState;
 
     public Client(string serverAddress, int port = 25565)
     {
         tcp = new TcpClient(serverAddress, port);
-        currentState = ProtocolState.HANDSHAKING;
+        this.CurrentState = ProtocolState.HANDSHAKING;
     }
 
     /*
@@ -50,8 +51,8 @@ public class Client : IDisposable
         int size = NumUtils.ReadVarInt(stream);
         int packId = NumUtils.ReadVarInt(stream, out int t);
 
-        if (IncomingPacketTypes[currentState].ContainsKey(packId))
-            return IncomingPacketTypes[currentState][packId](stream, size - t, this);
+        if (IncomingPacketTypes[this.CurrentState].ContainsKey(packId))
+            return IncomingPacketTypes[this.CurrentState][packId](stream, size - t, this);
         if (IncomingPacketTypes[ProtocolState.ALL].ContainsKey(packId))
             return IncomingPacketTypes[ProtocolState.ALL][packId](stream, size - t, this);
 

@@ -10,13 +10,15 @@ public static class StringUtils
     {
         int length = NumUtils.ReadVarInt(s);
         byte[] bytes = new byte[length];
-        s.Read(bytes, 0, length);
+        int read = 0;
+        while (read != length)
+            read += s.Read(bytes, read, length - read);
         return Encode.GetString(bytes);
     }
     
     public static byte[] WriteString(string s)
     {
-        List<byte> bytes = new List<byte>();
+        List<byte> bytes = new();
         byte[] strBytes = Encode.GetBytes(s);
         bytes.AddRange(NumUtils.ToVarInt((uint) strBytes.Length));
         bytes.AddRange(strBytes);

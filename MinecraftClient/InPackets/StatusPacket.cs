@@ -1,5 +1,5 @@
 ﻿using MinecraftClient.Util;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MinecraftClient.InPackets;
 
@@ -9,46 +9,61 @@ public class StatusPacket : InPacket
     {
         public class StatusVersion
         {
-            public string Name;
-            public int Protocol;
+            public readonly string Name = null!;
+            public readonly int Protocol = -1;
         }
 
         public class StatusPlayers
         {
             public class StatusPlayer
             {
-                public string Name;
-                public string Id;
+                public readonly string Name = null!;
+                public readonly string Id = null!;
             }
 
-            public int Max, Online;
-            public StatusPlayer[] Sample;
+            public readonly int Max = 0, Online = 0;
+            public readonly StatusPlayer[] Sample = null!;
         }
 
         public class StatusDescription
         {
-            public string Text;
+            public string Text = null!;
         }
         
-        public StatusVersion Version;
-        public StatusPlayers Players;
-        public StatusDescription Description;
-        public string Favicon;
+        public StatusVersion Version = null!;
+        public StatusPlayers Players = null!;
+        public StatusDescription Description = null!;
+        public string Favicon = null!;
         
         public override string ToString()
         {
             return $"Version:   {Version.Name} ({Version.Protocol})\n" +
                    $"Players:   {Players.Online}/{Players.Max}\n" +
                    $"MOTD:      {Description.Text}\n" + 
-                   (Favicon == null ? "" : "Favicon is set.\n");
+                   (string.IsNullOrEmpty(this.Favicon) ? "" : "Favicon is set.\n");
         }
     }
 
-    public ServerStatus? Status;
+    public readonly ServerStatus? Status;
     
     private StatusPacket(string json)
     {
-        Status = JsonConvert.DeserializeObject<ServerStatus>(json);
+        JToken jo = JToken.Parse(json);
+        // this is probably about as unstable as it looks, but idk how else to have description be either a string, or
+        // an object with the field "text", instead of only one of the two
+        Status = new ServerStatus
+        {
+            Players = jo["players"]!.ToObject<ServerStatus.StatusPlayers>()!,
+            Description = new ServerStatus.StatusDescription
+            {
+                Text = (jo["description"]!.Type == JTokenType.String
+                    ? jo.Value<string>("description")
+                    : jo["description"]!.Value<string>("text"))!
+            },
+            Favicon = jo.Value<string>("favicon"),
+            Version = jo["version"]!.ToObject<ServerStatus.StatusVersion>()!
+        };
+        
     }
     
     public static InPacket Parse(Stream s, int length, Client _)
