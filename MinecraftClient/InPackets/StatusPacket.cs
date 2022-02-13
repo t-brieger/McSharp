@@ -9,20 +9,20 @@ public class StatusPacket : InPacket
     {
         public class StatusVersion
         {
-            public readonly string Name = null!;
-            public readonly int Protocol = -1;
+            public string Name = null!;
+            public int Protocol = -1;
         }
 
         public class StatusPlayers
         {
             public class StatusPlayer
             {
-                public readonly string Name = null!;
-                public readonly string Id = null!;
+                public string Name = null!;
+                public string Id = null!;
             }
 
-            public readonly int Max = 0, Online = 0;
-            public readonly StatusPlayer[] Sample = null!;
+            public int Max = 0, Online = 0;
+            public StatusPlayer[] Sample = null!;
         }
 
         public class StatusDescription
@@ -48,7 +48,7 @@ public class StatusPacket : InPacket
     
     private StatusPacket(string json)
     {
-        JToken jo = JToken.Parse(json);
+        JObject jo = JObject.Parse(json);
         // this is probably about as unstable as it looks, but idk how else to have description be either a string, or
         // an object with the field "text", instead of only one of the two
         Status = new ServerStatus
@@ -60,7 +60,7 @@ public class StatusPacket : InPacket
                     ? jo.Value<string>("description")
                     : jo["description"]!.Value<string>("text"))!
             },
-            Favicon = jo.Value<string>("favicon"),
+            Favicon = jo.Value<string>("favicon")!,
             Version = jo["version"]!.ToObject<ServerStatus.StatusVersion>()!
         };
         
